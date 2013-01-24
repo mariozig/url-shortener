@@ -45,4 +45,7 @@ class URL < ActiveRecord::Base
     Click.where(url_id: url_id_).uniq.pluck(:user_id).count
   end
 
+  def self.clicks_from_ten_min(url_id_)
+    Click.where(:created_at => (10.minutes.ago..Time.now), :url_id => url_id_)
+  end
 end
