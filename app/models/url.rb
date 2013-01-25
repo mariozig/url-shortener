@@ -54,6 +54,7 @@ class URL < ActiveRecord::Base
     clicks.where(:created_at => (10.minutes.ago..Time.now))
   end
 
+  # MZ: Pluck Yeah!
   def self.list_tags
     tags = URL.pluck(:tag).uniq
   end
@@ -64,6 +65,7 @@ class URL < ActiveRecord::Base
 
   def self.print_most_popular(tags)
     popular = URL.where(:tag => tags).sort { |url1, url2|  url2.clicks.length <=>  url1.clicks.length }
+    # MZ: Maybe there were future plans for the index here, but is it needed?
     popular.each_with_index do |story, i|
       puts "#{story.long_url} - #{story.clicks.length} clicks"
     end
