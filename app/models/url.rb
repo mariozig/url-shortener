@@ -15,15 +15,16 @@ class URL < ActiveRecord::Base
   #   save
   # end
 
-  def self.create_url(long_url, user_id = nil)
+  def self.create_url(long_url, tag, user_id)
     url = URL.new
     url.long_url = long_url
     url.user_id = user_id
-    url.get_short_url
-    url
+    url.populate_url
+    url.tag = tag
+    url.save
   end
 
-  def get_short_url
+  def populate_url
     save
     self.short_url = id
     save
@@ -37,15 +38,35 @@ class URL < ActiveRecord::Base
     click.save
   end
 
-  def self.click_counter(url_id)
-    URL.find(url_id).clicks.count
+  def num_click
+    clicks.count
   end
 
-  def self.unique_click_counter(url_id_)
-    Click.where(url_id: url_id_).uniq.pluck(:user_id).count
+  def unique_clicks
+    user_ids = []
+    clicks.each do |click|
+      user_ids << click.user_id
+    end
+    user_ids.uniq.count
   end
 
-  def self.clicks_from_ten_min(url_id_)
-    Click.where(:created_at => (10.minutes.ago..Time.now), :url_id => url_id_)
+  def clicks_from_ten_min
+    clicks.where(:created_at => (10.minutes.ago..Time.now))
   end
+
+  def self.list_tags
+    tags = URL.pluck(:tag).uniq
+  end
+
+  def self.most_popular_stories_by_tag(tags)
+    URL.where(:tag => tags).sort { |url1, url2|  url2.clicks.length <=>  url1.clicks.length }
+  end
+
+  def self.print_most_popular(tags)
+    popular = URL.where(:tag => tags).sort { |url1, url2|  url2.clicks.length <=>  url1.clicks.length }
+    popular.each_with_index do |story, i|
+      puts "#{story.long_url} - #{story.clicks.length} clicks"
+    end
+  end
+
 end
